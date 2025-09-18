@@ -1,71 +1,104 @@
 <template>
-  <v-container fluid>
+  <v-container>
     <v-card>
-      <v-card-title class="d-flex align-center">
-        <div>
-          <span class="headline">Users</span>
-        </div>
-
+      <v-card-title>
+        Users Table
         <v-spacer></v-spacer>
-
         <v-text-field
           v-model="search"
           append-icon="mdi-magnify"
           label="Search"
           single-line
           hide-details
-          dense
-          style="max-width:300px"
         />
       </v-card-title>
 
-      <!-- Outer wrapper: only horizontal scrolling -->
-      <div class="table-responsive">
+      <!-- Horizontal Scroll Wrapper -->
+      <div style="overflow-x: auto;">
         <v-data-table
           :headers="headers"
           :items="users"
           :search="search"
-          :items-per-page="10"
-          class="my-data-table elevation-1"
-          disable-sort-by-default
+          class="elevation-1"
+          @click:row="openRowDetails"
         >
-          <!-- Email clickable -->
+          <!-- Email Column -->
           <template slot="item.email" slot-scope="props">
             <a :href="`mailto:${props.item.email}`">{{ props.item.email }}</a>
           </template>
 
-          <!-- Status with icon -->
+          <!-- Status Column -->
           <template slot="item.status" slot-scope="props">
-            <v-chip :color="props.item.status === 'Active' ? 'green' : 'red'" dark small>
-              <v-icon left small>
+            <v-chip :color="props.item.status === 'Active' ? 'green' : 'red'" dark>
+              <v-icon left>
                 {{ props.item.status === 'Active' ? 'mdi-check-circle' : 'mdi-close-circle' }}
               </v-icon>
               {{ props.item.status }}
             </v-chip>
           </template>
         </v-data-table>
-      </div>
 
-      <!-- Keep default footer (pagination) visible below the scroll area -->
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="primary" @click="exportToExcel" small>
-          <v-icon left>mdi-file-excel</v-icon>
-          Export Excel
-        </v-btn>
-      </v-card-actions>
+      </div>
     </v-card>
+
+    <!-- Dialog Popup -->
+    <v-dialog v-model="dialog" max-width="500">
+      <v-card>
+        <v-card-title>
+          User Details
+          <v-spacer></v-spacer>
+          <v-btn icon @click="dialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-card-text>
+          <v-list dense>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title><strong>Name:</strong> {{ selectedUser.name }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title><strong>Email:</strong> {{ selectedUser.email }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title><strong>Status:</strong> {{ selectedUser.status }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title><strong>Joined:</strong> {{ selectedUser.joined }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title><strong>Role:</strong> {{ selectedUser.role }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn text color="primary" @click="dialog = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script>
-import * as XLSX from "xlsx"
-
 export default {
-  name: "ScrollableTable",
   data() {
     return {
       search: "",
+      dialog: false,
+      selectedUser: {},
       headers: [
         { text: "Name", value: "name", sortable: true },
         { text: "Email", value: "email", sortable: true },
@@ -102,53 +135,10 @@ export default {
     }
   },
   methods: {
-    exportToExcel() {
-      // export full dataset
-      const ws = XLSX.utils.json_to_sheet(this.users)
-      const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws, "Users")
-      XLSX.writeFile(wb, "users.xlsx")
+    openRowDetails(item) {
+      this.selectedUser = item
+      this.dialog = true
     }
   }
 }
 </script>
-
-<style>
-/* <-- Put this in a global (non-scoped) style block or in a global CSS file --> */
-
-/* Outer wrapper: only horizontal scroll */
-.table-responsive {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  /* ensure wrapper doesn't create a new stacking context that breaks sticky */
-  position: relative;
-}
-
-/* Force the inner table to be wide enough to trigger horizontal scroll.
-   Using a fixed min-width for demo; you may set min-width based on your column count
-   or use min-width: max-content if you want table width to match content width. */
-.table-responsive .v-data-table__wrapper table {
-  min-width: 1200px; /* increase if you need a wider table */
-}
-
-/* Make header cells sticky (stick to the top of the scrolling container).
-   We target the actual thead th produced by Vuetify. */
-.table-responsive .v-data-table__wrapper thead th {
-  position: sticky;
-  top: 0;                 /* distance from top of the scroll container */
-  background: white;      /* set background so header doesn't appear transparent */
-  z-index: 5;             /* keep header above table body */
-  /* optional visual separation */
-  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.06);
-}
-
-/* If your header has icons or sort controls, keep them above body cells */
-.table-responsive .v-data-table__wrapper thead th .v-icon,
-.table-responsive .v-data-table__wrapper thead th .v-btn {
-  z-index: 6;
-}
-
-/* In case Vuetify or your layout adds transforms/filters on parents (which break sticky),
-   ensure no transform on ancestors of the table. If you cannot remove transforms,
-   sticky won't work — see troubleshooting notes below. */
-</style>

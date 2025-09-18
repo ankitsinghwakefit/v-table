@@ -39,53 +39,44 @@
         </v-data-table>
 
       </div>
+      <v-card-actions>
+         <v-spacer></v-spacer>
+         <v-btn color="primary" @click="exportToExcel" small>
+           <v-icon left>mdi-file-excel</v-icon>
+           Export Excel
+         </v-btn>
+       </v-card-actions>
     </v-card>
+
 
     <!-- Dialog Popup -->
     <v-dialog v-model="dialog" max-width="500">
       <v-card>
         <v-card-title>
-          User Details
+          Edit User
           <v-spacer></v-spacer>
           <v-btn icon @click="dialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
+
         <v-card-text>
-          <v-list dense>
-            <v-list-item>
-              <v-list-item-content>
-                <v-list-item-title><strong>Name:</strong> {{ selectedUser.name }}</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-
-            <v-list-item>
-              <v-list-item-content>
-                <v-list-item-title><strong>Email:</strong> {{ selectedUser.email }}</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-
-            <v-list-item>
-              <v-list-item-content>
-                <v-list-item-title><strong>Status:</strong> {{ selectedUser.status }}</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-
-            <v-list-item>
-              <v-list-item-content>
-                <v-list-item-title><strong>Joined:</strong> {{ selectedUser.joined }}</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-
-            <v-list-item>
-              <v-list-item-content>
-                <v-list-item-title><strong>Role:</strong> {{ selectedUser.role }}</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
+          <v-form ref="editForm">
+            <v-text-field v-model="editUser.name" label="Name"></v-text-field>
+            <v-text-field v-model="editUser.email" label="Email"></v-text-field>
+            <v-select
+              v-model="editUser.status"
+              :items="['Active', 'Inactive']"
+              label="Status"
+            ></v-select>
+            <v-text-field v-model="editUser.joined" label="Joined"></v-text-field>
+            <v-text-field v-model="editUser.role" label="Role"></v-text-field>
+          </v-form>
         </v-card-text>
+
         <v-card-actions>
-          <v-btn text color="primary" @click="dialog = false">Close</v-btn>
+          <v-btn text color="primary" @click="saveUser">Save</v-btn>
+          <v-btn text @click="dialog = false">Cancel</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -93,12 +84,15 @@
 </template>
 
 <script>
+import * as XLSX from "xlsx"
 export default {
   data() {
     return {
       search: "",
       dialog: false,
       selectedUser: {},
+      selectedIndex: null, // track which row we clicked
+      editUser: {}, // editable copy
       headers: [
         { text: "Name", value: "name", sortable: true },
         { text: "Email", value: "email", sortable: true },
@@ -135,9 +129,22 @@ export default {
     }
   },
   methods: {
+    exportToExcel() {
+      // export full dataset
+      const ws = XLSX.utils.json_to_sheet(this.users)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, "Users")
+      XLSX.writeFile(wb, "users.xlsx")
+    },
     openRowDetails(item) {
       this.selectedUser = item
       this.dialog = true
+    },
+    saveUser() {
+      if (this.selectedIndex !== null) {
+        this.$set(this.users, this.selectedIndex, Object.assign({}, this.editUser))
+      }
+      this.dialog = false
     }
   }
 }

@@ -104,6 +104,7 @@
 
 <script>
 import axios from "axios"
+import toast from '@/utils/message.util';
 
 export default {
   data() {
@@ -173,11 +174,12 @@ export default {
           type: fileObj.file.type,
           preview: fileObj.file.preview || null
         })
-
+        toast.success('intelligence.intelCase.messages.downloadAttachmentSuccess');
         console.log("Uploaded:", response.data)
       } catch (error) {
         console.error("Upload failed:", error)
-        alert(`Upload failed for ${fileObj.name}`)
+        toast.inprogress('validationResult.message');
+       // alert(`Upload failed for ${fileObj.name}`)
       }
     },
 

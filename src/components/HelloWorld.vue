@@ -135,7 +135,14 @@ export default {
         { text: "Email", value: "email", sortable: true },
         { text: "Status", value: "status", sortable: true },
         { text: "Joined", value: "joined", sortable: true },
-        { text: "Role", value: "role", sortable: true }
+        { text: "Role", value: "role", sortable: true },
+        { text: "Department", value: "department" },
+        { text: "Location", value: "location" },
+        { text: "Phone", value: "phone" },
+        // Add more columns if you want to test horizontal scrolling
+        { text: "Extra 1", value: "e1" },
+        { text: "Extra 2", value: "e2" },
+        { text: "Extra 3", value: "e3" }
       ],
       users: []
     }
@@ -155,7 +162,13 @@ export default {
         email: `user${i}@example.com`,
         status: i % 2 === 0 ? "Active" : "Inactive",
         joined: "2023-01-01",
-        role: i % 2 === 0 ? "Developer" : "Designer"
+        role: i % 2 === 0 ? "Developer" : "Designer",
+        department: "Engineering",
+        location: "Dubai",
+        phone: `+971-555-000${i}`,
+        e1: `X1-${i}`,
+        e2: `X2-${i}`,
+        e3: `X3-${i}`
       })
     }
   },
@@ -207,5 +220,8 @@ export default {
 }
 .table-responsive .v-data-table__wrapper table {
   min-width: 800px; /* ensures horizontal scroll if many columns */
+}
+.v-data-table-header {
+  background-color: aquamarine;
 }
 </style>
